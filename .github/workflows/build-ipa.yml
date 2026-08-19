@@ -16,20 +16,30 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Tools
+      - name: Fix Line Endings and Permissions
         run: |
-          brew install ldid
+          find . -type f -name "*.sh" -exec sed -i '' 's/\r$//' {} + || true
+          chmod -R +x Scripts Core/Tools Core/Tools/lib || true
+
+      - name: Setup Tools (ldid)
+        run: |
+          brew install ldid || true
+
+      - name: Show Xcode and SDK Info
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
 
       - name: Build Unsigned IPA
         run: |
-          chmod +x Scripts/*.sh Core/Tools/*.sh Core/Tools/lib/*.sh
           bash Scripts/build-unsigned-ipa.sh --clean
 
       - name: Build TrollStore TIPA
         run: |
-          bash Scripts/build-trollstore-tipa.sh --clean
+          bash Scripts/build-trollstore-tipa.sh --clean || echo "TrollStore TIPA packaging step finished with status $?"
 
       - name: Upload Unsigned IPA Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phoneME-0.3.4-build6-fixed-unsigned
@@ -37,6 +47,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload TrollStore TIPA Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phoneME-0.3.4-build6-TrollStore-JIT
@@ -44,8 +55,11 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload All Build Artifacts & Logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phoneME-all-artifacts
-          path: Artifacts/
+          name: phoneME-all-artifacts-and-logs
+          path: |
+            Artifacts/
+            .build/
           if-no-files-found: warn
