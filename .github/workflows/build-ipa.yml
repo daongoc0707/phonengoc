@@ -1,0 +1,51 @@
+name: Build phoneME iOS IPA
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build iOS IPA & TrollStore TIPA
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Tools
+        run: |
+          brew install ldid
+
+      - name: Build Unsigned IPA
+        run: |
+          chmod +x Scripts/*.sh Core/Tools/*.sh Core/Tools/lib/*.sh
+          bash Scripts/build-unsigned-ipa.sh --clean
+
+      - name: Build TrollStore TIPA
+        run: |
+          bash Scripts/build-trollstore-tipa.sh --clean
+
+      - name: Upload Unsigned IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phoneME-0.3.4-build6-fixed-unsigned
+          path: Artifacts/phoneME-0.3.4-build6-fixed-unsigned.ipa
+          if-no-files-found: warn
+
+      - name: Upload TrollStore TIPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phoneME-0.3.4-build6-TrollStore-JIT
+          path: Artifacts/phoneME-TrollStore-JIT.tipa
+          if-no-files-found: warn
+
+      - name: Upload All Build Artifacts & Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: phoneME-all-artifacts
+          path: Artifacts/
+          if-no-files-found: warn
