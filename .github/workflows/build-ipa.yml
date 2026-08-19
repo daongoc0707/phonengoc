@@ -16,19 +16,20 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      - name: Install Dependencies
+        run: |
+          brew install ripgrep ldid
+
       - name: Fix Line Endings and Permissions
         run: |
-          find . -type f -name "*.sh" -exec sed -i '' 's/\r$//' {} + || true
+          find . -type f \( -name "*.sh" -o -name "*.plist" -o -name "*.strings" -o -name "*.swift" -o -name "*.cpp" -o -name "*.hpp" -o -name "*.h" -o -name "*.m" -o -name "*.mm" -o -name "*.pbxproj" \) -exec sed -i '' 's/\r$//' {} + || true
           chmod -R +x Scripts Core/Tools Core/Tools/lib || true
 
-      - name: Setup Tools (ldid)
-        run: |
-          brew install ldid || true
-
-      - name: Show Xcode and SDK Info
+      - name: Show Xcode and Tool Info
         run: |
           xcodebuild -version
-          xcodebuild -showsdks
+          rg --version
+          ldid || true
 
       - name: Build Unsigned IPA
         run: |
@@ -36,7 +37,7 @@ jobs:
 
       - name: Build TrollStore TIPA
         run: |
-          bash Scripts/build-trollstore-tipa.sh --clean || echo "TrollStore TIPA packaging step finished with status $?"
+          bash Scripts/build-trollstore-tipa.sh --clean || echo "TrollStore TIPA build finished"
 
       - name: Upload Unsigned IPA Artifact
         if: always()
