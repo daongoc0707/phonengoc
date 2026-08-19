@@ -16,20 +16,25 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      - name: Setup Environment & Dependencies
         run: |
-          brew install ripgrep ldid
+          echo "/opt/homebrew/bin" >> $GITHUB_PATH
+          echo "/usr/local/bin" >> $GITHUB_PATH
+          brew install ripgrep ldid || true
+          which rg && sudo ln -sf $(which rg) /usr/local/bin/rg || true
+          which ldid && sudo ln -sf $(which ldid) /usr/local/bin/ldid || true
 
       - name: Fix Line Endings and Permissions
         run: |
           find . -type f \( -name "*.sh" -o -name "*.plist" -o -name "*.strings" -o -name "*.swift" -o -name "*.cpp" -o -name "*.hpp" -o -name "*.h" -o -name "*.m" -o -name "*.mm" -o -name "*.pbxproj" \) -exec sed -i '' 's/\r$//' {} + || true
           chmod -R +x Scripts Core/Tools Core/Tools/lib || true
 
-      - name: Show Xcode and Tool Info
+      - name: Show System and Tool Info
         run: |
           xcodebuild -version
-          rg --version
-          ldid || true
+          which rg || true
+          rg --version || true
+          which ldid || true
 
       - name: Build Unsigned IPA
         run: |
@@ -37,7 +42,7 @@ jobs:
 
       - name: Build TrollStore TIPA
         run: |
-          bash Scripts/build-trollstore-tipa.sh --clean || echo "TrollStore TIPA build finished"
+          bash Scripts/build-trollstore-tipa.sh --clean || echo "TrollStore TIPA build completed with non-zero status"
 
       - name: Upload Unsigned IPA Artifact
         if: always()

@@ -107,9 +107,12 @@ xcodebuild \
   -configuration "$CONFIGURATION" \
   -destination 'generic/platform=iOS' \
   -derivedDataPath "$DERIVED_DATA" \
+  CODE_SIGN_STYLE=Manual \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY='' \
+  AD_HOC_CODE_SIGNING_ALLOWED=YES \
+  DEVELOPMENT_TEAM='' \
   TARGETED_DEVICE_FAMILY=1 \
   build \
   2>&1 | tee "$BUILD_LOG"
@@ -118,6 +121,9 @@ set +o pipefail
 set -e
 
 if [[ "$build_status" -ne 0 ]]; then
+  echo "==================== BUILD FAILED: LOG OUTPUT ====================" >&2
+  tail -n 100 "$BUILD_LOG" >&2 || cat "$BUILD_LOG" >&2
+  echo "==================================================================" >&2
   echo "Unsigned iPhone build failed. See: $BUILD_LOG" >&2
   exit "$build_status"
 fi

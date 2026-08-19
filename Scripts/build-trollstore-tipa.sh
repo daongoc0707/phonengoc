@@ -122,9 +122,12 @@ run_device_build() {
     -configuration "$CONFIGURATION" \
     -destination 'generic/platform=iOS' \
     -derivedDataPath "$DERIVED_DATA" \
+    CODE_SIGN_STYLE=Manual \
     CODE_SIGNING_ALLOWED=NO \
     CODE_SIGNING_REQUIRED=NO \
     CODE_SIGN_IDENTITY='' \
+    AD_HOC_CODE_SIGNING_ALLOWED=YES \
+    DEVELOPMENT_TEAM='' \
     TARGETED_DEVICE_FAMILY=1 \
     'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) PHONEME_TROLLSTORE_BUILD=1' \
     build \
@@ -132,6 +135,11 @@ run_device_build() {
   local status=${PIPESTATUS[0]}
   set +o pipefail
   set -e
+  if [[ "$status" -ne 0 ]]; then
+    echo "==================== TROLLSTORE BUILD FAILED: LOG OUTPUT ====================" >&2
+    tail -n 100 "$BUILD_LOG" >&2 || cat "$BUILD_LOG" >&2
+    echo "============================================================================" >&2
+  fi
   return "$status"
 }
 
